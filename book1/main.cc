@@ -11,13 +11,28 @@
 #include "hitable_list.h"
 #include "camera.h"
 
+// choose a random vector in the unit sphere
+vec3 random_in_unit_sphere()
+{
+    vec3 p;
+    do {
+        p = 2.0*vec3(drand48(),drand48(),drand48()) - vec3(1,1,1);
+    } while (p.squared_length() >= 1.0);
+    return p;
+}
+
 // color and fallback to background color
 vec3 color(const ray& r, hitable *world) 
 {
     hit_record rec;
-    if (world->hit(r, 0.0, MAXFLOAT, rec))
+    // ignore small t values
+    if (world->hit(r, 0.001, MAXFLOAT, rec))
     {
-        return 0.5*vec3(rec.normal.x()+1, rec.normal.y()+1, rec.normal.z()+1);
+        // diffuse shading
+        vec3 target = rec.p + rec.normal + random_in_unit_sphere();
+        return 0.5*color( ray(rec.p, target - rec.p), world);
+        // normal shading
+        // return 0.5*vec3(rec.normal.x()+1, rec.normal.y()+1, rec.normal.z()+1);
     }
     else
     {
@@ -64,6 +79,8 @@ int main()
             }
             // normalize color
             col /= float(ns);
+            // gamma correct
+            col = vec3( sqrt(col[0]), sqrt(col[1]), sqrt(col[2]) );
 
             // store color in image buffer
             int ir = int(255.99*col[0]);

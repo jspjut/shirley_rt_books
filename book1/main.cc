@@ -62,6 +62,61 @@ class metal : public material {
         float fuzz;
 };
 
+// returns true if refraction happens. Also returns the refraction direction.
+bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted)
+{
+    vec3 uv = unit_vector(v);
+    float dt = dot(uv, n);
+    float discriminant = 1.0 - ni_over_nt*ni_over_nt*(1-dt*dt);
+    if (discriminant > 0)
+    {
+        refracted = ni_over_nt*(uv - n*dt) - n*sqrt(discriminant);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+class dielectric : public material
+{
+    public:
+        dielectric(float ri) : ref_idx(ri) {}
+        virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
+        {
+            vec3 outward_normal;
+            vec3 reflected = reflect(r_in.direction(), rec.normal);
+            float ni_over_nt;
+            attenuation = vec3(1.0, 1.0, 1.0);
+            vec3 refracted;
+            // check which side of normal the ray is
+            if (dot(r_in.direction(), rec.normal) > 0)
+            {
+                outward_normal = -rec.normal;
+                ni_over_nt = ref_idx;
+            }
+            else
+            {
+                outward_normal = rec.normal;
+                ni_over_nt = 1.0 / ref_idx;                
+            }
+            // check if refraction happens
+            if (refract(r_in.direction(), outward_normal, ni_over_nt, refracted))
+            {
+                scattered = ray(rec.p, refracted);
+            }
+            else
+            {
+                scattered = ray(rec.p, reflected);
+                // return false; // false to avoid reflections for now...
+            }
+            return true;
+        }
+
+        float ref_idx;
+};
+
 // color and fallback to background color
 vec3 color(const ray& r, hitable *world, int depth) 
 {
@@ -101,6 +156,8 @@ int main()
 {
     int nx = 200;
     int ny = 100;
+    // int nx = 2000;
+    // int ny = 1000;
     // sample count: 10 is very fast and noisy, 100 is reasonable (used in book)
     // 1000 is kinda slow but looks pretty good, more is probably needed for quality
     int ns = 100;
@@ -109,6 +166,14 @@ int main()
     unsigned char *data = new unsigned char[nx*ny*3];
 
     // object list
+    hitable *list[4];
+    list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(vec3(0.1,0.2,0.5)));
+    list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.8,0.8,0.0)));
+    list[2] = new sphere(vec3(1,0,-1), 0.5, new metal(vec3(0.8,0.6,0.2), 0.0));
+    list[3] = new sphere(vec3(-1,0,-1), 0.5, new dielectric(1.5));
+    hitable *world = new hitable_list(list, 4);
+
+    // object list from Chapter 8.
     // hitable *list[4];
     // list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(vec3(0.8,0.3,0.3)));
     // list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.8,0.8,0.0)));
@@ -117,16 +182,16 @@ int main()
     // hitable *world = new hitable_list(list, 4);
 
     // Objects made with Audrey!
-    hitable *list[6];
-    list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.545,0.27,0.075)));//139, 69, 19
-    // upper row blue, black, red
-    list[1] = new sphere(vec3(-0.55,0.0,-1), 0.25, new metal(vec3(0.0,0.4,0.8), 0.9));
-    list[2] = new sphere(vec3(0,0.0,-1), 0.25, new metal(vec3(0.116,0.1,0.1), 0.9));
-    list[3] = new sphere(vec3(0.55,0.0,-1), 0.25, new metal(vec3(0.875,0.208,0.29), 0.9));
-    // lower row yellow, green
-    list[4] = new sphere(vec3(-0.275,-0.25,-1), 0.25, new metal(vec3(0.953,0.714,0.302), 0.7));
-    list[5] = new sphere(vec3(0.275,-0.25,-1), 0.25, new metal(vec3(0.114,0.613,0.333), 0.7));
-    hitable *world = new hitable_list(list, 6);
+    // hitable *list[6];
+    // list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.545,0.27,0.075)));//139, 69, 19
+    // // upper row blue, black, red
+    // list[1] = new sphere(vec3(-0.55,0.0,-1), 0.25, new metal(vec3(0.0,0.4,0.8), 0.9));
+    // list[2] = new sphere(vec3(0,0.0,-1), 0.25, new metal(vec3(0.116,0.1,0.1), 0.9));
+    // list[3] = new sphere(vec3(0.55,0.0,-1), 0.25, new metal(vec3(0.875,0.208,0.29), 0.9));
+    // // lower row yellow, green
+    // list[4] = new sphere(vec3(-0.275,-0.25,-1), 0.25, new metal(vec3(0.953,0.714,0.302), 0.7));
+    // list[5] = new sphere(vec3(0.275,-0.25,-1), 0.25, new metal(vec3(0.114,0.613,0.333), 0.7));
+    // hitable *world = new hitable_list(list, 6);
 
     // camera
     camera cam;

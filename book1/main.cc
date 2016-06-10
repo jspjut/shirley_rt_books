@@ -79,6 +79,14 @@ bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted)
     }
 }
 
+// approximation of steep angles by Christophe Schlick
+float schlick(float cosine, float ref_idx)
+{
+    float r0 = (1-ref_idx) / (1+ref_idx);
+    r0 = r0*r0;
+    return r0 + (1-r0)*pow((1-cosine),5);
+}
+
 class dielectric : public material
 {
     public:
@@ -90,26 +98,39 @@ class dielectric : public material
             float ni_over_nt;
             attenuation = vec3(1.0, 1.0, 1.0);
             vec3 refracted;
+            float reflect_prob;
+            float cosine;
             // check which side of normal the ray is
             if (dot(r_in.direction(), rec.normal) > 0)
             {
                 outward_normal = -rec.normal;
                 ni_over_nt = ref_idx;
+                cosine = ref_idx * dot(r_in.direction(), rec.normal) / r_in.direction().length();
             }
             else
             {
                 outward_normal = rec.normal;
-                ni_over_nt = 1.0 / ref_idx;                
+                ni_over_nt = 1.0 / ref_idx;
+                cosine = -dot(r_in.direction(), rec.normal) / r_in.direction().length();
             }
             // check if refraction happens
             if (refract(r_in.direction(), outward_normal, ni_over_nt, refracted))
             {
-                scattered = ray(rec.p, refracted);
+                reflect_prob = schlick(cosine, ref_idx);
             }
             else
             {
+                // always reflect
+                reflect_prob = 1.0;
+            }
+            //choose either reflect or refract based on probability
+            if (drand48() < reflect_prob)
+            {
                 scattered = ray(rec.p, reflected);
-                // return false; // false to avoid reflections for now...
+            }
+            else
+            {
+                scattered = ray(rec.p, refracted);
             }
             return true;
         }
@@ -166,12 +187,13 @@ int main()
     unsigned char *data = new unsigned char[nx*ny*3];
 
     // object list
-    hitable *list[4];
+    hitable *list[5];
     list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(vec3(0.1,0.2,0.5)));
     list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.8,0.8,0.0)));
     list[2] = new sphere(vec3(1,0,-1), 0.5, new metal(vec3(0.8,0.6,0.2), 0.0));
     list[3] = new sphere(vec3(-1,0,-1), 0.5, new dielectric(1.5));
-    hitable *world = new hitable_list(list, 4);
+    list[4] = new sphere(vec3(-1,0,-1), -0.45, new dielectric(1.5));
+    hitable *world = new hitable_list(list, 5);
 
     // object list from Chapter 8.
     // hitable *list[4];

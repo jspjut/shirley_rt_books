@@ -21,16 +21,69 @@ vec3 random_in_unit_sphere()
     return p;
 }
 
+// abstract class
+class material
+{
+    public:
+        virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const = 0;
+};
+
+class lambertian : public material {
+    public:
+        lambertian(const vec3& a) : albedo(a) {}
+        virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
+        {
+            vec3 target = rec.p + rec.normal + random_in_unit_sphere();
+            scattered = ray(rec.p, target - rec.p);
+            attenuation = albedo;
+            return true;
+        }
+
+        vec3 albedo;
+};
+
+vec3 reflect(const vec3& v, const vec3& n)
+{
+    return v - 2*dot(v,n)*n;
+}
+
+class metal : public material {
+    public:
+        metal(const vec3& a) : albedo(a) {}
+        virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
+        {
+            vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
+            scattered = ray(rec.p, reflected);
+            attenuation = albedo;
+            return (dot(scattered.direction(), rec.normal) > 0);
+        }
+
+        vec3 albedo;
+};
+
 // color and fallback to background color
-vec3 color(const ray& r, hitable *world) 
+vec3 color(const ray& r, hitable *world, int depth) 
 {
     hit_record rec;
     // ignore small t values
     if (world->hit(r, 0.001, MAXFLOAT, rec))
     {
+        // material shading
+        ray scattered;
+        vec3 attenuation;
+        if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+        {
+            return attenuation*color(scattered, world, depth+1);
+        }
+        else
+        {
+            return vec3(0,0,0);
+        }
+
         // diffuse shading
-        vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-        return 0.5*color( ray(rec.p, target - rec.p), world);
+        // vec3 target = rec.p + rec.normal + random_in_unit_sphere();
+        // return 0.5*color( ray(rec.p, target - rec.p), world);
+
         // normal shading
         // return 0.5*vec3(rec.normal.x()+1, rec.normal.y()+1, rec.normal.z()+1);
     }
@@ -55,15 +108,20 @@ int main()
     unsigned char *data = new unsigned char[nx*ny*3];
 
     // object list
-    hitable *list[2];
-    list[0] = new sphere(vec3(0,0,-1), 0.5);
-    list[1] = new sphere(vec3(0,-100.5, -1), 100);
-    hitable *world = new hitable_list(list, 2);
+    hitable *list[4];
+    list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(vec3(0.8,0.3,0.3)));
+    list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.8,0.8,0.0)));
+    list[2] = new sphere(vec3(1,0,-1), 0.5, new metal(vec3(0.8,0.6,0.2)));
+    list[3] = new sphere(vec3(-1,0,-1), 0.5, new metal(vec3(0.8,0.8,0.8)));
+    hitable *world = new hitable_list(list, 4);
 
     // camera
     camera cam;
 
     // loop over pixels
+    // first hit for debugging
+    // int j = 78;
+    // int i = 22;
     for (int j = ny-1; j >= 0; j--)
     {
         for (int i = 0; i < nx; i++)
@@ -76,8 +134,10 @@ int main()
                 float v = float(j + drand48()) / float(ny);
 
                 ray r = cam.get_ray(u, v);
-                vec3 p = r.point_at_parameter(2.0);
-                col += color(r, world);
+                
+                // not sure why this line was in the book
+                // vec3 p = r.point_at_parameter(2.0);
+                col += color(r, world, 0);
             }
             // normalize color
             col /= float(ns);

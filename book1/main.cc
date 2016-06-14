@@ -54,13 +54,15 @@ vec3 color(const ray& r, hitable *world, int depth)
 
 int main()
 {
-    int nx = 200;
-    int ny = 100;
+    // int nx = 200;
+    // int ny = 100;
+    int nx = 1920;
+    int ny = 1080;
     // int nx = 2000;
     // int ny = 1000;
     // sample count: 10 is very fast and noisy, 100 is reasonable (used in book)
     // 1000 is kinda slow but looks pretty good, more is probably needed for quality
-    int ns = 100;
+    int ns = 1000;
 
     // output buffer
     unsigned char *data = new unsigned char[nx*ny*3];

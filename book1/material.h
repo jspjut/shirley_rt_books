@@ -128,4 +128,19 @@ class dielectric : public material
         float ref_idx;
 };
 
+// light source material, emits a constant light color
+class light_source : public material {
+    public:
+        light_source(const vec3& a) : albedo(a) {}
+        virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
+        {
+            // special case for emitter: scattered ray.direction = 0,0,0 means color = albedo
+            scattered = ray(rec.p, vec3(0,0,0));
+            attenuation = albedo;
+            return true;
+        }
+
+        vec3 albedo;
+};
+
 #endif //MATERIALH

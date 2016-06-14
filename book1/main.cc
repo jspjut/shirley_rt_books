@@ -24,6 +24,11 @@ vec3 color(const ray& r, hitable *world, int depth)
         vec3 attenuation;
         if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
         {
+            if (scattered.direction().length() == 0)
+            {
+                //special case for emitter
+                return attenuation;
+            }
             return attenuation*color(scattered, world, depth+1);
         }
         else
@@ -85,23 +90,39 @@ int main()
     // hitable *world = new hitable_list(list, 4);
 
     // Objects made with Audrey!
-    hitable *list[6];
+    hitable *list[12];
     list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.545,0.27,0.075)));//139, 69, 19
     // upper row blue, black, red
-    list[1] = new sphere(vec3(-0.55,0.0,-1), 0.25, new metal(vec3(0.0,0.4,0.8), 0.9));
-    list[2] = new sphere(vec3(0,0.0,-1), 0.25, new metal(vec3(0.116,0.1,0.1), 0.9));
-    list[3] = new sphere(vec3(0.55,0.0,-1), 0.25, new metal(vec3(0.875,0.208,0.29), 0.9));
+    float r1 = 0.1, r2 = 0.25;
+    list[1] = new sphere(vec3(-0.55,0.0,-1), r1, new metal(vec3(0.0,0.4,0.8), 0.9));
+    list[7] = new sphere(vec3(-0.55,0.0,-1), r2, new dielectric(1.5));
+    list[2] = new sphere(vec3(0,0.0,-1), r1, new metal(vec3(0.116,0.1,0.1), 0.9));
+    list[8] = new sphere(vec3(0,0.0,-1), r2, new dielectric(1.5));
+    list[3] = new sphere(vec3(0.55,0.0,-1), r1, new metal(vec3(0.875,0.208,0.29), 0.9));
+    list[9] = new sphere(vec3(0.55,0.0,-1), r2, new dielectric(1.5));
     // lower row yellow, green
-    list[4] = new sphere(vec3(-0.275,-0.25,-1), 0.25, new metal(vec3(0.953,0.714,0.302), 0.7));
-    list[5] = new sphere(vec3(0.275,-0.25,-1), 0.25, new metal(vec3(0.114,0.613,0.333), 0.7));
-    hitable *world = new hitable_list(list, 6);
+    list[4] = new sphere(vec3(-0.275,-0.25,-1), r1, new metal(vec3(0.953,0.714,0.302), 0.7));
+    list[10] = new sphere(vec3(-0.275,-0.25,-1), r2, new dielectric(1.5));
+    list[5] = new sphere(vec3(0.275,-0.25,-1), r1, new metal(vec3(0.114,0.613,0.333), 0.7));
+    list[11] = new sphere(vec3(0.275,-0.25,-1), r2, new dielectric(1.5));
+    // metal
+    // // upper row blue, black, red
+    // list[1] = new sphere(vec3(-0.55,0.0,-1), 0.25, new metal(vec3(0.0,0.4,0.8), 0.9));
+    // list[2] = new sphere(vec3(0,0.0,-1), 0.25, new metal(vec3(0.116,0.1,0.1), 0.9));
+    // list[3] = new sphere(vec3(0.55,0.0,-1), 0.25, new metal(vec3(0.875,0.208,0.29), 0.9));
+    // // lower row yellow, green
+    // list[4] = new sphere(vec3(-0.275,-0.25,-1), 0.25, new metal(vec3(0.953,0.714,0.302), 0.7));
+    // list[5] = new sphere(vec3(0.275,-0.25,-1), 0.25, new metal(vec3(0.114,0.613,0.333), 0.7));
+    // sky
+    list[6] = new sphere(vec3(0,-100.5, -1), 1000, new light_source(vec3(0.6,0.6,0.7)));//139, 69, 19
+    hitable *world = new hitable_list(list, 12);
 
     // camera
-    vec3 lookfrom(3,3,2);
+    vec3 lookfrom(1,1,2); //3,3,2 value from book
     vec3 lookat(0,0,-1);
     float dist_to_focus = (lookfrom-lookat).length();
-    float aperture = 2.0;
-    camera cam(lookfrom, lookat, vec3(0,1,0), 15, float(nx)/float(ny), aperture, dist_to_focus);
+    float aperture = 0.25; // 2.0 value from book
+    camera cam(lookfrom, lookat, vec3(0,1,0), 20, float(nx)/float(ny), aperture, dist_to_focus);
 
     // loop over pixels
     // first hit for debugging

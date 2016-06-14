@@ -181,7 +181,7 @@ int main()
     // int ny = 1000;
     // sample count: 10 is very fast and noisy, 100 is reasonable (used in book)
     // 1000 is kinda slow but looks pretty good, more is probably needed for quality
-    int ns = 100;
+    int ns = 1000;
 
     // output buffer
     unsigned char *data = new unsigned char[nx*ny*3];
@@ -223,8 +223,11 @@ int main()
     // hitable *world = new hitable_list(list, 6);
 
     // camera
-    // camera cam(90, float(nx)/float(ny));
-    camera cam(vec3(-2,2,1), vec3(0,0,-1), vec3(0,1,0), 30, float(nx)/float(ny));
+    vec3 lookfrom(3,3,2);
+    vec3 lookat(0,0,-1);
+    float dist_to_focus = (lookfrom-lookat).length();
+    float aperture = 2.0;
+    camera cam(lookfrom, lookat, vec3(0,1,0), 20, float(nx)/float(ny), aperture, dist_to_focus);
 
     // loop over pixels
     // first hit for debugging

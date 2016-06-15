@@ -23,18 +23,14 @@ vec3 color(const ray& r, hitable *world, int depth)
         // material shading
         ray scattered;
         vec3 attenuation;
+        vec3 emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
         if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
         {
-            if (scattered.direction().length() == 0)
-            {
-                //special case for emitter
-                return attenuation;
-            }
-            return attenuation*color(scattered, world, depth+1);
+            return emitted + attenuation*color(scattered, world, depth+1);
         }
         else
         {
-            return vec3(0,0,0);
+            return emitted;
         }
 
         // normal shading
@@ -42,10 +38,13 @@ vec3 color(const ray& r, hitable *world, int depth)
     }
     else
     {
+        // black if nothing else
+        return vec3(0,0,0);
+
         // fallback to the blue/white gradient (sky)
-        vec3 unit_direction = unit_vector(r.direction());
-        float t = 0.5*(unit_direction.y() + 1.0);
-        return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+        // vec3 unit_direction = unit_vector(r.direction());
+        // float t = 0.5*(unit_direction.y() + 1.0);
+        // return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
     }
 }
 
@@ -101,7 +100,8 @@ hitable* setup_world()
     // list[4] = new sphere(vec3(-0.275,-0.25,-1), 0.25, new metal(vec3(0.953,0.714,0.302), 0.7));
     // list[5] = new sphere(vec3(0.275,-0.25,-1), 0.25, new metal(vec3(0.114,0.613,0.333), 0.7));
     // sky
-    list[6] = new sphere(vec3(0,-100.5, -1), 1000, new light_source(vec3(0.6,0.6,0.7)));//139, 69, 19
+    // list[6] = new sphere(vec3(0,-100.5, -1), 1000, new light_source(vec3(0.6,0.6,0.7)));//139, 69, 19
+    list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(vec3(0.6,0.6,0.7)));//139, 69, 19
     hitable *world = new hitable_list(list, 12);
 
     return world;

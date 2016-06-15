@@ -16,6 +16,7 @@ class material
 {
     public:
         virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const = 0;
+        virtual vec3 emitted(float u, float v, const vec3& p) const {return vec3(0,0,0);}
 };
 
 class lambertian : public material {
@@ -128,19 +129,23 @@ class dielectric : public material
         float ref_idx;
 };
 
-// light source material, emits a constant light color
-class light_source : public material {
+// diffuse light emits light and scatters nothing
+class diffuse_light : public material
+{
     public:
-        light_source(const vec3& a) : albedo(a) {}
+        diffuse_light(const vec3& a) : emit(a) {}
         virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
         {
-            // special case for emitter: scattered ray.direction = 0,0,0 means color = albedo
-            scattered = ray(rec.p, vec3(0,0,0));
-            attenuation = albedo;
-            return true;
+            return false;
+        }
+        virtual vec3 emitted(float u, float v, const vec3& p) const
+        {
+            return emit;
+            // return emit->value(u,v,p);
         }
 
-        vec3 albedo;
+        vec3 emit;
+        // texture *emit;
 };
 
 #endif //MATERIALH

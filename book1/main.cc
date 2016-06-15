@@ -1,4 +1,5 @@
 #include <iostream>
+// compile with g++ main.cc -pthread
 
 // include and implement stb_image stuff
 #define STB_IMAGE_IMPLEMENTATION
@@ -36,10 +37,6 @@ vec3 color(const ray& r, hitable *world, int depth)
             return vec3(0,0,0);
         }
 
-        // diffuse shading
-        // vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-        // return 0.5*color( ray(rec.p, target - rec.p), world);
-
         // normal shading
         // return 0.5*vec3(rec.normal.x()+1, rec.normal.y()+1, rec.normal.z()+1);
     }
@@ -52,30 +49,18 @@ vec3 color(const ray& r, hitable *world, int depth)
     }
 }
 
-int main()
+hitable* setup_world()
 {
-    // int nx = 200;
-    // int ny = 100;
-    int nx = 1920;
-    int ny = 1080;
-    // int nx = 2000;
-    // int ny = 1000;
-    // sample count: 10 is very fast and noisy, 100 is reasonable (used in book)
-    // 1000 is kinda slow but looks pretty good, more is probably needed for quality
-    int ns = 1000;
-
-    // output buffer
-    unsigned char *data = new unsigned char[nx*ny*3];
-
     // object list early chapter 10
-    // hitable *list[2];
+    // hitable **list = new hitable*[2];
     // float R = cos(M_PI/4);
     // list[0] = new sphere(vec3(-R,0,-1), R, new lambertian(vec3(0,0,1)));
     // list[1] = new sphere(vec3( R,0,-1), R, new lambertian(vec3(1,0,0.0)));
     // hitable *world = new hitable_list(list, 2);
 
     // object list from chapter 9
-    // hitable *list[5];
+    //// hitable *list[5];
+    // hitable **list = new hitable*[5];
     // list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(vec3(0.1,0.2,0.5)));
     // list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.8,0.8,0.0)));
     // list[2] = new sphere(vec3(1,0,-1), 0.5, new metal(vec3(0.8,0.6,0.2), 0.0));
@@ -84,7 +69,7 @@ int main()
     // hitable *world = new hitable_list(list, 5);
 
     // object list from Chapter 8.
-    // hitable *list[4];
+    // hitable **list = new hitable*[4];
     // list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(vec3(0.8,0.3,0.3)));
     // list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.8,0.8,0.0)));
     // list[2] = new sphere(vec3(1,0,-1), 0.5, new metal(vec3(0.8,0.6,0.2), 1.0));
@@ -92,7 +77,7 @@ int main()
     // hitable *world = new hitable_list(list, 4);
 
     // Objects made with Audrey!
-    hitable *list[12];
+    hitable **list = new hitable*[12];
     list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.545,0.27,0.075)));//139, 69, 19
     // upper row blue, black, red
     float r1 = 0.1, r2 = 0.25;
@@ -119,17 +104,35 @@ int main()
     list[6] = new sphere(vec3(0,-100.5, -1), 1000, new light_source(vec3(0.6,0.6,0.7)));//139, 69, 19
     hitable *world = new hitable_list(list, 12);
 
-    // camera
-    vec3 lookfrom(1,1,2); //3,3,2 value from book
-    vec3 lookat(0,0,-1);
-    float dist_to_focus = (lookfrom-lookat).length();
-    float aperture = 0.25; // 2.0 value from book
-    camera cam(lookfrom, lookat, vec3(0,1,0), 20, float(nx)/float(ny), aperture, dist_to_focus);
+    return world;
+}
+
+#include <pthread.h>
+
+struct prog_state
+{
+    hitable* world;
+    unsigned char *data;
+    camera *cam;
+    int tid;
+    int nx, ny, ns, nt;
+};
+
+void *thread_main(void *global_state)
+{
+    // get state passed in
+    prog_state gs = *(prog_state *)global_state;
+    int ns = gs.ns;
+    int nx = gs.nx;
+    int ny = gs.ny;
+    int nt = gs.nt;
+    hitable* world = gs.world;
+    unsigned char* data = gs.data;
+    camera cam = *gs.cam;
+
+    srand48(gs.tid);
 
     // loop over pixels
-    // first hit for debugging
-    // int j = 78;
-    // int i = 22;
     for (int j = ny-1; j >= 0; j--)
     {
         for (int i = 0; i < nx; i++)
@@ -143,13 +146,16 @@ int main()
 
                 ray r = cam.get_ray(u, v);
                 
-                // not sure why this line was in the book
-                // vec3 p = r.point_at_parameter(2.0);
                 col += color(r, world, 0);
             }
+
             // normalize color
             col /= float(ns);
+            // normalize with number of threads
+            col /= float(nt);
             // gamma correct
+            // TODO: this needs to happen outside of the thread, 
+            //       everything below will need to move
             col = vec3( sqrt(col[0]), sqrt(col[1]), sqrt(col[2]) );
 
             // store color in image buffer
@@ -163,6 +169,111 @@ int main()
             data[pix_id+0] = ir;
             data[pix_id+1] = ig;
             data[pix_id+2] = ib;
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
+int main()
+{
+    // int nx = 200;
+    // int ny = 100;
+    int nx = 607;
+    int ny = 342;
+    // int nx = 1920;
+    // int ny = 1080;
+    // int nx = 2000;
+    // int ny = 1000;
+    // sample count: 10 is very fast and noisy, 100 is reasonable (used in book)
+    // 1000 is kinda slow but looks pretty good, more is probably needed for quality
+    int ns = 10;
+    // number of software threads (ns happens per thread)
+    // TODO: need to average threads in linear space, until fixed, keep this at 1.
+    int nt = 1;
+
+    // set up global state
+    // prog_state global_state;
+
+    // output buffer
+    // unsigned char *data = new unsigned char[nx*ny*3];
+    unsigned char *data = new unsigned char[nx*ny*3*nt];
+    // std::cerr << &data << std::endl;
+    // larger to have one per thread
+    // global_state.data = new unsigned char[nx*ny*3*nt];
+
+    // get top level hitable from world setup
+    hitable *world = setup_world();
+    // global_state.world = setup_world();
+
+    // camera
+    vec3 lookfrom(1,1,2); //3,3,2 value from book
+    vec3 lookat(0,0,-1);
+    float dist_to_focus = (lookfrom-lookat).length();
+    float aperture = 0.25; // 2.0 value from book
+    camera cam(lookfrom, lookat, vec3(0,1,0), 20, float(nx)/float(ny), aperture, dist_to_focus);
+
+    // parallel threads
+    pthread_t *threads = new pthread_t[nt];
+    prog_state *pstate = new prog_state[nt];
+
+    // loop over threads
+    for (int t = 0; t < nt; t++)
+    {
+        // set up state
+        pstate[t].tid = t;
+        pstate[t].world = world;
+        pstate[t].data = data + t*nx*ny*3;
+        pstate[t].cam = &cam;
+        pstate[t].ns = ns;
+        pstate[t].nx = nx;
+        pstate[t].ny = ny;
+        pstate[t].nt = nt;
+
+        // try creating thread
+        int rc = pthread_create(&threads[t], NULL, thread_main, (void *)&pstate[t]);
+        if (rc)
+        {
+            std::cerr << "ERROR; return code from pthread_create: " << rc << std::endl;
+            exit(-1);
+        }
+    }
+
+    // wait for threads to finish
+    for (int t = 0; t < nt; t++)
+    {
+        pthread_join(threads[t], NULL);
+    }
+
+    // write elemental images (debugging)
+    for (int t = 0; t < nt; t++)
+    {
+        char buf[50];
+        sprintf(buf, "out%d.png", t);
+        stbi_write_png(buf, nx, ny, 3, data + t*nx*ny*3, 0);
+    }
+
+    // combine images
+    float scale = 1.0/nt;
+    for (int j = ny-1; j >= 0; j--)
+    {
+        for (int i = 0; i < nx; i++)
+        {
+            int pix_id = (i+nx*(ny-1)-j*nx)*3;
+            // data[pix_id+0] = data[pix_id+0];
+            // data[pix_id+1] = data[pix_id+1];
+            // data[pix_id+2] = data[pix_id+2];
+            for (int t = 1; t < nt; t++)
+            {
+                // TODO: This summing needs to happen in linear space, not gamma space
+                int offset = t*nx*ny*3;
+                data[pix_id+0] += data[pix_id+offset+0];
+                data[pix_id+1] += data[pix_id+offset+1];
+                data[pix_id+2] += data[pix_id+offset+2];
+            }
+            // data[pix_id+0] = data[pix_id+0] / float(nt);
+            // data[pix_id+1] = data[pix_id+1] / float(nt);
+            // data[pix_id+2] = data[pix_id+2] / float(nt);
         }
     }
 

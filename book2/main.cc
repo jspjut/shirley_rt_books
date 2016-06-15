@@ -12,6 +12,7 @@
 #include "hitable_list.h"
 #include "camera.h"
 #include "material.h"
+#include "texture.h"
 
 // color and fallback to background color
 vec3 color(const ray& r, hitable *world, int depth) 
@@ -53,15 +54,15 @@ hitable* setup_world()
     // object list early chapter 10
     // hitable **list = new hitable*[2];
     // float R = cos(M_PI/4);
-    // list[0] = new sphere(vec3(-R,0,-1), R, new lambertian(vec3(0,0,1)));
-    // list[1] = new sphere(vec3( R,0,-1), R, new lambertian(vec3(1,0,0.0)));
+    // list[0] = new sphere(vec3(-R,0,-1), R, new lambertian(new constant_texture(vec3(0,0,1))));
+    // list[1] = new sphere(vec3( R,0,-1), R, new lambertian(new constant_texture(vec3(1,0,0.0)));
     // hitable *world = new hitable_list(list, 2);
 
     // object list from chapter 9
     //// hitable *list[5];
     // hitable **list = new hitable*[5];
-    // list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(vec3(0.1,0.2,0.5)));
-    // list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.8,0.8,0.0)));
+    // list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(new constant_texture(vec3(0.1,0.2,0.5)));
+    // list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(new constant_texture(vec3(0.8,0.8,0.0)));
     // list[2] = new sphere(vec3(1,0,-1), 0.5, new metal(vec3(0.8,0.6,0.2), 0.0));
     // list[3] = new sphere(vec3(-1,0,-1), 0.5, new dielectric(1.5));
     // list[4] = new sphere(vec3(-1,0,-1), -0.45, new dielectric(1.5));
@@ -69,30 +70,30 @@ hitable* setup_world()
 
     // object list from Chapter 8.
     // hitable **list = new hitable*[4];
-    // list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(vec3(0.8,0.3,0.3)));
-    // list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.8,0.8,0.0)));
+    // list[0] = new sphere(vec3(0,0,-1), 0.5, new lambertian(new constant_texture(vec3(0.8,0.3,0.3)));
+    // list[1] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(new constant_texture(vec3(0.8,0.8,0.0)));
     // list[2] = new sphere(vec3(1,0,-1), 0.5, new metal(vec3(0.8,0.6,0.2), 1.0));
     // list[3] = new sphere(vec3(-1,0,-1), 0.5, new metal(vec3(0.8,0.8,0.8), 0.3));
     // hitable *world = new hitable_list(list, 4);
 
     // Objects made with Audrey!
     hitable **list = new hitable*[12];
-    list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.545,0.27,0.075)));//139, 69, 19
+    list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(new constant_texture(vec3(0.545,0.27,0.075))));//139, 69, 19
     // upper row blue, black, red
     float r1 = 0.1, r2 = 0.25;
     // list[1] = new sphere(vec3(-0.55,0.0,-1), r1, new diffuse_light(vec3(0.0,0.4,0.8)));
     // list[2] = new sphere(vec3(0,0.0,-1), r1, new diffuse_light(vec3(0.116,0.1,0.1)));
     // list[3] = new sphere(vec3(0.55,0.0,-1), r1, new diffuse_light(vec3(0.875,0.208,0.29)));
-    list[1] = new sphere(vec3(-0.55,0.0,-1), r1, new metal(vec3(0.0,0.4,0.8), 0.9));
+    list[1] = new sphere(vec3(-0.55,0.0,-1), r1, new metal(new constant_texture(vec3(0.0,0.4,0.8)), 0.9));
     list[7] = new sphere(vec3(-0.55,0.0,-1), r2, new dielectric(1.5));
-    list[2] = new sphere(vec3(0,0.0,-1), r1, new metal(vec3(0.116,0.1,0.1), 0.9));
+    list[2] = new sphere(vec3(0,0.0,-1), r1, new metal(new constant_texture(vec3(0.116,0.1,0.1)), 0.9));
     list[8] = new sphere(vec3(0,0.0,-1), r2, new dielectric(1.5));
-    list[3] = new sphere(vec3(0.55,0.0,-1), r1, new metal(vec3(0.875,0.208,0.29), 0.9));
+    list[3] = new sphere(vec3(0.55,0.0,-1), r1, new metal(new constant_texture(vec3(0.875,0.208,0.29)), 0.9));
     list[9] = new sphere(vec3(0.55,0.0,-1), r2, new dielectric(1.5));
     // lower row yellow, green
-    list[4] = new sphere(vec3(-0.275,-0.25,-1), r1, new metal(vec3(0.953,0.714,0.302), 0.7));
+    list[4] = new sphere(vec3(-0.275,-0.25,-1), r1, new metal(new constant_texture(vec3(0.953,0.714,0.302)), 0.7));
     list[10] = new sphere(vec3(-0.275,-0.25,-1), r2, new dielectric(1.5));
-    list[5] = new sphere(vec3(0.275,-0.25,-1), r1, new metal(vec3(0.114,0.613,0.333), 0.7));
+    list[5] = new sphere(vec3(0.275,-0.25,-1), r1, new metal(new constant_texture(vec3(0.114,0.613,0.333)), 0.7));
     list[11] = new sphere(vec3(0.275,-0.25,-1), r2, new dielectric(1.5));
     // metal
     // // upper row blue, black, red
@@ -103,8 +104,8 @@ hitable* setup_world()
     // list[4] = new sphere(vec3(-0.275,-0.25,-1), 0.25, new metal(vec3(0.953,0.714,0.302), 0.7));
     // list[5] = new sphere(vec3(0.275,-0.25,-1), 0.25, new metal(vec3(0.114,0.613,0.333), 0.7));
     // sky
-    // list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(vec3(0.6,0.6,0.7)));//139, 69, 19
-    list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(vec3(0.1,0.1,0.1)));//139, 69, 19
+    list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(new constant_texture(vec3(0.6,0.6,0.7))));//139, 69, 19
+    // list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(vec3(0.1,0.1,0.1)));//139, 69, 19
     hitable *world = new hitable_list(list, 12);
 
     return world;

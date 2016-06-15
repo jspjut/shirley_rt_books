@@ -1,6 +1,8 @@
 #ifndef MATERIALH
 #define MATERIALH
 
+#include "texture.h"
+
 // choose a random vector in the unit sphere
 vec3 random_in_unit_sphere()
 {
@@ -21,16 +23,16 @@ class material
 
 class lambertian : public material {
     public:
-        lambertian(const vec3& a) : albedo(a) {}
+        lambertian(texture *a) : albedo(a) {}
         virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
         {
             vec3 target = rec.p + rec.normal + random_in_unit_sphere();
             scattered = ray(rec.p, target - rec.p);
-            attenuation = albedo;
+            attenuation = albedo->value(0,0, rec.p);
             return true;
         }
 
-        vec3 albedo;
+        texture *albedo;
 };
 
 vec3 reflect(const vec3& v, const vec3& n)
@@ -40,16 +42,16 @@ vec3 reflect(const vec3& v, const vec3& n)
 
 class metal : public material {
     public:
-        metal(const vec3& a, float f) : albedo(a) { if (f<1) fuzz = f; else fuzz = 1; }
+        metal(texture *a, float f) : albedo(a) { if (f<1) fuzz = f; else fuzz = 1; }
         virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
         {
             vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
             scattered = ray(rec.p, reflected + fuzz*random_in_unit_sphere());
-            attenuation = albedo;
+            attenuation = albedo->value(0,0, rec.p);
             return (dot(scattered.direction(), rec.normal) > 0);
         }
 
-        vec3 albedo;
+        texture *albedo;
         float fuzz;
 };
 
@@ -133,19 +135,19 @@ class dielectric : public material
 class diffuse_light : public material
 {
     public:
-        diffuse_light(const vec3& a) : emit(a) {}
+        diffuse_light(texture *a) : emit(a) {}
         virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
         {
             return false;
         }
         virtual vec3 emitted(float u, float v, const vec3& p) const
         {
-            return emit;
-            // return emit->value(u,v,p);
+            // return emit;
+            return emit->value(u,v,p);
         }
 
-        vec3 emit;
-        // texture *emit;
+        // vec3 emit;
+        texture *emit;
 };
 
 #endif //MATERIALH

@@ -80,6 +80,9 @@ hitable* setup_world()
     list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(vec3(0.545,0.27,0.075)));//139, 69, 19
     // upper row blue, black, red
     float r1 = 0.1, r2 = 0.25;
+    // list[1] = new sphere(vec3(-0.55,0.0,-1), r1, new diffuse_light(vec3(0.0,0.4,0.8)));
+    // list[2] = new sphere(vec3(0,0.0,-1), r1, new diffuse_light(vec3(0.116,0.1,0.1)));
+    // list[3] = new sphere(vec3(0.55,0.0,-1), r1, new diffuse_light(vec3(0.875,0.208,0.29)));
     list[1] = new sphere(vec3(-0.55,0.0,-1), r1, new metal(vec3(0.0,0.4,0.8), 0.9));
     list[7] = new sphere(vec3(-0.55,0.0,-1), r2, new dielectric(1.5));
     list[2] = new sphere(vec3(0,0.0,-1), r1, new metal(vec3(0.116,0.1,0.1), 0.9));
@@ -100,8 +103,8 @@ hitable* setup_world()
     // list[4] = new sphere(vec3(-0.275,-0.25,-1), 0.25, new metal(vec3(0.953,0.714,0.302), 0.7));
     // list[5] = new sphere(vec3(0.275,-0.25,-1), 0.25, new metal(vec3(0.114,0.613,0.333), 0.7));
     // sky
-    // list[6] = new sphere(vec3(0,-100.5, -1), 1000, new light_source(vec3(0.6,0.6,0.7)));//139, 69, 19
-    list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(vec3(0.6,0.6,0.7)));//139, 69, 19
+    // list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(vec3(0.6,0.6,0.7)));//139, 69, 19
+    list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(vec3(0.1,0.1,0.1)));//139, 69, 19
     hitable *world = new hitable_list(list, 12);
 
     return world;

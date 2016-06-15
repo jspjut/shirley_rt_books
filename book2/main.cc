@@ -177,34 +177,26 @@ void *thread_main(void *global_state)
 
 int main()
 {
-    // int nx = 200;
-    // int ny = 100;
-    int nx = 607;
-    int ny = 342;
+    int nx = 200;
+    int ny = 100;
+    // int nx = 607;
+    // int ny = 342;
     // int nx = 1920;
     // int ny = 1080;
     // int nx = 2000;
     // int ny = 1000;
     // sample count: 10 is very fast and noisy, 100 is reasonable (used in book)
     // 1000 is kinda slow but looks pretty good, more is probably needed for quality
-    int ns = 10;
+    int ns = 100;
     // number of software threads (ns happens per thread)
     // TODO: need to average threads in linear space, until fixed, keep this at 1.
     int nt = 1;
 
-    // set up global state
-    // prog_state global_state;
-
     // output buffer
-    // unsigned char *data = new unsigned char[nx*ny*3];
     unsigned char *data = new unsigned char[nx*ny*3*nt];
-    // std::cerr << &data << std::endl;
-    // larger to have one per thread
-    // global_state.data = new unsigned char[nx*ny*3*nt];
 
     // get top level hitable from world setup
     hitable *world = setup_world();
-    // global_state.world = setup_world();
 
     // camera
     vec3 lookfrom(1,1,2); //3,3,2 value from book

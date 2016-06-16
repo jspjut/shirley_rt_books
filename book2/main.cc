@@ -78,7 +78,9 @@ hitable* setup_world()
 
     // Objects made with Audrey!
     hitable **list = new hitable*[12];
-    list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(new constant_texture(vec3(0.545,0.27,0.075))));//139, 69, 19
+    texture *checker = new checker_texture(new constant_texture(vec3(0.6,0.6,0.6)), new constant_texture(vec3(0.1,0.1,0.1)));
+    list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(checker));//139, 69, 19
+    // list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(new constant_texture(vec3(0.545,0.27,0.075))));//139, 69, 19
     // upper row blue, black, red
     float r1 = 0.1, r2 = 0.25;
     // list[1] = new sphere(vec3(-0.55,0.0,-1), r1, new diffuse_light(vec3(0.0,0.4,0.8)));
@@ -104,8 +106,9 @@ hitable* setup_world()
     // list[4] = new sphere(vec3(-0.275,-0.25,-1), 0.25, new metal(vec3(0.953,0.714,0.302), 0.7));
     // list[5] = new sphere(vec3(0.275,-0.25,-1), 0.25, new metal(vec3(0.114,0.613,0.333), 0.7));
     // sky
-    list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(new constant_texture(vec3(0.6,0.6,0.7))));//139, 69, 19
-    // list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(vec3(0.1,0.1,0.1)));//139, 69, 19
+    // texture *checker = new checker_texture(new constant_texture(vec3(0.6,0.6,0.7)), new constant_texture(vec3(0.0,0.0,0.2)));
+    // list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(checker));//139, 69, 19
+    list[6] = new sphere(vec3(0,-100.5, -1), 1000, new diffuse_light(new constant_texture(vec3(0.7,0.7,0.9))));//139, 69, 19
     hitable *world = new hitable_list(list, 12);
 
     return world;
@@ -181,17 +184,17 @@ void *thread_main(void *global_state)
 
 int main()
 {
-    int nx = 200;
-    int ny = 100;
+    // int nx = 200;
+    // int ny = 100;
     // int nx = 607;
     // int ny = 342;
-    // int nx = 1920;
-    // int ny = 1080;
+    int nx = 1920;
+    int ny = 1080;
     // int nx = 2000;
     // int ny = 1000;
     // sample count: 10 is very fast and noisy, 100 is reasonable (used in book)
     // 1000 is kinda slow but looks pretty good, more is probably needed for quality
-    int ns = 100;
+    int ns = 1000;
     // number of software threads (ns happens per thread)
     // TODO: need to average threads in linear space, until fixed, keep this at 1.
     int nt = 1;
@@ -203,7 +206,7 @@ int main()
     hitable *world = setup_world();
 
     // camera
-    vec3 lookfrom(1,1,2); //3,3,2 value from book
+    vec3 lookfrom(1,0.75,2); //3,3,2 value from book
     vec3 lookat(0,0,-1);
     float dist_to_focus = (lookfrom-lookat).length();
     float aperture = 0.25; // 2.0 value from book

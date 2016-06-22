@@ -13,6 +13,7 @@
 #include "camera.h"
 #include "material.h"
 #include "texture.h"
+#include "kensler_noise.h"
 
 // color and fallback to background color
 vec3 color(const ray& r, hitable *world, int depth) 
@@ -51,6 +52,9 @@ vec3 color(const ray& r, hitable *world, int depth)
 
 hitable* setup_world()
 {
+    // initialize kensler noise
+    kensler::init();
+    
     // object list early chapter 10
     // hitable **list = new hitable*[2];
     // float R = cos(M_PI/4);
@@ -78,8 +82,10 @@ hitable* setup_world()
 
     // Objects made with Audrey!
     hitable **list = new hitable*[12];
-    texture *checker = new checker_texture(new constant_texture(vec3(0.6,0.6,0.6)), new constant_texture(vec3(0.1,0.1,0.1)));
-    list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(checker));//139, 69, 19
+    texture *noise = new noise_texture(new constant_texture(vec3(0.2,0.2,0.2)), new constant_texture(vec3(1.0,1.0,1.0)));
+    list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(noise));//139, 69, 19
+    // texture *checker = new checker_texture(new constant_texture(vec3(0.6,0.6,0.6)), new constant_texture(vec3(0.1,0.1,0.1)));
+    // list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(checker));//139, 69, 19
     // list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(new constant_texture(vec3(0.545,0.27,0.075))));//139, 69, 19
     // upper row blue, black, red
     float r1 = 0.1, r2 = 0.25;
@@ -186,15 +192,15 @@ int main()
 {
     // int nx = 200;
     // int ny = 100;
-    // int nx = 607;
-    // int ny = 342;
-    int nx = 1920;
-    int ny = 1080;
+    int nx = 607;
+    int ny = 342;
+    // int nx = 1920;
+    // int ny = 1080;
     // int nx = 2000;
     // int ny = 1000;
     // sample count: 10 is very fast and noisy, 100 is reasonable (used in book)
     // 1000 is kinda slow but looks pretty good, more is probably needed for quality
-    int ns = 1000;
+    int ns = 10;
     // number of software threads (ns happens per thread)
     // TODO: need to average threads in linear space, until fixed, keep this at 1.
     int nt = 1;

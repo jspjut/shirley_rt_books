@@ -2,6 +2,7 @@
 #define TEXTUREH
 
 #include "ray.h"
+#include "kensler_noise.h"
 
 class texture {
     public:
@@ -40,6 +41,21 @@ class checker_texture : public texture
         }
 
         texture *even, *odd;
+};
+
+class noise_texture : public texture
+{
+    public:
+        noise_texture() { }
+        noise_texture(texture *t0, texture*t1) : zero(t0), one(t1) { }
+        virtual vec3 value(float u, float v, const vec3& p) const
+        {
+            // change this for different noise mapping function
+            float val = kensler::noise2d(p.x(), p.z());
+            return val * one->value(u,v,p) + (1.0f - val) * zero->value(u,v,p);
+        }
+
+        texture *zero, *one;
 };
 
 #endif //TEXTUREH

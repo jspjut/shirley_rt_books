@@ -40,7 +40,7 @@ namespace kensler
         return f(x) * f(y) * (grad_x * x + grad_y * y);
     }
 
-    // single noise call
+    // single 2d noise call
     float noise2d(float x, float y)
     {
         float result = 0.0f;
@@ -55,6 +55,23 @@ namespace kensler
             }
         }
         return result;
+    }
+
+    // turbulunce
+    float turbulence2d(float x, float y, int depth=7)
+    {
+        float accum = 0.0f;
+        float temp_x = x;
+        float temp_y = y;
+        float weight = 1.0;
+        for (int i = 0; i < depth; ++i)
+        {
+            accum += weight * noise2d(temp_x, temp_y);
+            weight *= 0.5;
+            temp_x *= 2.0;
+            temp_y *= 2.0;
+        }
+        return fabs(accum);
     }
 }
 

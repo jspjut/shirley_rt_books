@@ -58,4 +58,19 @@ class noise_texture : public texture
         texture *zero, *one;
 };
 
+class turb_texture : public texture
+{
+    public:
+        turb_texture() { }
+        turb_texture(texture *t0, texture*t1) : zero(t0), one(t1) { }
+        virtual vec3 value(float u, float v, const vec3& p) const
+        {
+            // change this for different noise mapping function
+            float val = kensler::turbulence2d(p.x(), p.z());
+            return val * one->value(u,v,p) + (1.0f - val) * zero->value(u,v,p);
+        }
+
+        texture *zero, *one;
+};
+
 #endif //TEXTUREH

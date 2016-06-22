@@ -82,7 +82,7 @@ hitable* setup_world()
 
     // Objects made with Audrey!
     hitable **list = new hitable*[12];
-    texture *noise = new noise_texture(new constant_texture(vec3(0.2,0.2,0.2)), new constant_texture(vec3(1.0,1.0,1.0)));
+    texture *noise = new turb_texture(new constant_texture(vec3(0.2,0.2,0.2)), new constant_texture(vec3(1.0,1.0,1.0)));
     list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(noise));//139, 69, 19
     // texture *checker = new checker_texture(new constant_texture(vec3(0.6,0.6,0.6)), new constant_texture(vec3(0.1,0.1,0.1)));
     // list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(checker));//139, 69, 19

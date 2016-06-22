@@ -73,4 +73,21 @@ class turb_texture : public texture
         texture *zero, *one;
 };
 
+class marble_texture : public texture
+{
+    public:
+        marble_texture() { }
+        marble_texture(texture *t0, texture*t1) : zero(t0), one(t1) { }
+        virtual vec3 value(float u, float v, const vec3& p) const
+        {
+            // change this for different noise mapping function
+            float tval = kensler::turbulence2d(p.x(), p.z());
+            float val = 0.5 * (1.0 + sin(8*p.x()+8*p.y()+2*p.z() + 8*tval));
+            // lerp
+            return val * one->value(u,v,p) + (1.0f - val) * zero->value(u,v,p);
+        }
+
+        texture *zero, *one;
+};
+
 #endif //TEXTUREH

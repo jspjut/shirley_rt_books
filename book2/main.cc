@@ -82,10 +82,11 @@ hitable* setup_world()
 
     // Objects made with Audrey!
     hitable **list = new hitable*[12];
-    texture *noise = new turb_texture(new constant_texture(vec3(0.2,0.2,0.2)), new constant_texture(vec3(1.0,1.0,1.0)));
-    list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(noise));//139, 69, 19
+    texture *noise = new marble_texture(new constant_texture(vec3(0.2,0.3,0.5)), new constant_texture(vec3(0.6,1.0,0.8)));
+    // list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(noise));//139, 69, 19
     // texture *checker = new checker_texture(new constant_texture(vec3(0.6,0.6,0.6)), new constant_texture(vec3(0.1,0.1,0.1)));
-    // list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(checker));//139, 69, 19
+    texture *checker = new checker_texture(noise, new constant_texture(vec3(0.4,0.4,0.4)));
+    list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(checker));//139, 69, 19
     // list[0] = new sphere(vec3(0,-100.5, -1), 100, new lambertian(new constant_texture(vec3(0.545,0.27,0.075))));//139, 69, 19
     // upper row blue, black, red
     float r1 = 0.1, r2 = 0.25;
@@ -190,17 +191,17 @@ void *thread_main(void *global_state)
 
 int main()
 {
-    // int nx = 200;
-    // int ny = 100;
-    int nx = 607;
-    int ny = 342;
+    int nx = 200;
+    int ny = 100;
+    // int nx = 607;
+    // int ny = 342;
     // int nx = 1920;
     // int ny = 1080;
     // int nx = 2000;
     // int ny = 1000;
     // sample count: 10 is very fast and noisy, 100 is reasonable (used in book)
     // 1000 is kinda slow but looks pretty good, more is probably needed for quality
-    int ns = 10;
+    int ns = 100;
     // number of software threads (ns happens per thread)
     // TODO: need to average threads in linear space, until fixed, keep this at 1.
     int nt = 1;
